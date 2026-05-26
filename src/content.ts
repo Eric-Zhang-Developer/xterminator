@@ -1,3 +1,5 @@
+const ENABLED_STORAGE_KEY = "xterminatorEnabled";
+const DEFAULT_ENABLED = true;
 const SUPPORTED_HOSTNAMES = new Set(["x.com", "twitter.com"]);
 const HOME_PATHNAME = "/home";
 const HOME_TIMELINE_SELECTOR =
@@ -5,7 +7,19 @@ const HOME_TIMELINE_SELECTOR =
 const HIDDEN_ATTR = "data-xterminator-hidden";
 
 const hiddenElements = new WeakSet<HTMLElement>();
+let enabled = DEFAULT_ENABLED;
 let lastHref = window.location.href;
+
+function getEnabled(): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(
+      { [ENABLED_STORAGE_KEY]: DEFAULT_ENABLED },
+      (items: { [ENABLED_STORAGE_KEY]?: boolean }) => {
+        resolve(items[ENABLED_STORAGE_KEY] ?? DEFAULT_ENABLED);
+      }
+    );
+  });
+}
 
 function isSupportedHomeRoute(): boolean {
   return (
@@ -28,7 +42,7 @@ function clearHiddenTimelines(): void {
 }
 
 function hideHomeTimeline(): void {
-  if (!isSupportedHomeRoute()) {
+  if (!enabled || !isSupportedHomeRoute()) {
     clearHiddenTimelines();
     return;
   }
@@ -64,9 +78,21 @@ function wrapHistoryMethod(methodName: "pushState" | "replaceState"): void {
   };
 }
 
-function start(): void {
+function listenForToggleChanges(): void {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "sync" || !changes[ENABLED_STORAGE_KEY]) {
+      return;
+    }
+
+    enabled = changes[ENABLED_STORAGE_KEY].newValue ?? DEFAULT_ENABLED;
+    hideHomeTimeline();
+  });
+}
+
+async function start(): Promise<void> {
   wrapHistoryMethod("pushState");
   wrapHistoryMethod("replaceState");
+  listenForToggleChanges();
 
   window.addEventListener("popstate", handlePossibleRouteChange);
 
@@ -76,6 +102,7 @@ function start(): void {
     subtree: true
   });
 
+  enabled = await getEnabled();
   hideHomeTimeline();
 }
 
