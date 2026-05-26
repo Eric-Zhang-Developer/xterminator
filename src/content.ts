@@ -2,6 +2,9 @@ const ENABLED_STORAGE_KEY = "xterminatorEnabled";
 const DEFAULT_ENABLED = true;
 const SUPPORTED_HOSTNAMES = new Set(["x.com", "twitter.com"]);
 const HOME_PATHNAME = "/home";
+const SELECTED_HOME_TAB_SELECTOR =
+  '[data-testid="primaryColumn"] [role="tab"][aria-selected="true"]';
+const BLOCKED_TAB_LABEL = "For you";
 const HOME_TIMELINE_SELECTOR =
   '[data-testid="primaryColumn"] [aria-label="Timeline: Your Home Timeline"]';
 const HIDDEN_ATTR = "data-xterminator-hidden";
@@ -28,6 +31,18 @@ function isSupportedHomeRoute(): boolean {
   );
 }
 
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function isBlockedHomeTabSelected(): boolean {
+  const selectedTab = document.querySelector<HTMLElement>(
+    SELECTED_HOME_TAB_SELECTOR
+  );
+
+  return normalizeText(selectedTab?.textContent ?? "") === BLOCKED_TAB_LABEL;
+}
+
 function setImportantDisplayNone(element: HTMLElement): void {
   element.style.setProperty("display", "none", "important");
   element.setAttribute(HIDDEN_ATTR, "true");
@@ -42,7 +57,7 @@ function clearHiddenTimelines(): void {
 }
 
 function hideHomeTimeline(): void {
-  if (!enabled || !isSupportedHomeRoute()) {
+  if (!enabled || !isSupportedHomeRoute() || !isBlockedHomeTabSelected()) {
     clearHiddenTimelines();
     return;
   }

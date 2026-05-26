@@ -29,7 +29,7 @@ function render(enabled: boolean): void {
   }
 
   if (statusText) {
-    statusText.textContent = enabled ? "Home feed blocked" : "Home feed visible";
+    statusText.textContent = enabled ? "For you blocked" : "For you visible";
   }
 }
 
