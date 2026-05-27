@@ -2,7 +2,7 @@
   "name": "xterminator",
   "version": "0.1.0",
   "private": true,
-  "description": "A tiny Chrome extension that hides the X/Twitter home feed.",
+  "description": "A tiny Chrome extension that hides the For you timeline on X/Twitter home.",
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && vite build",
