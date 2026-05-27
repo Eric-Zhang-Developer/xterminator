@@ -1,17 +1,46 @@
+const ENABLED_STORAGE_KEY = "xterminatorEnabled";
+const DEFAULT_ENABLED = true;
 const SUPPORTED_HOSTNAMES = new Set(["x.com", "twitter.com"]);
 const HOME_PATHNAME = "/home";
+const SELECTED_HOME_TAB_SELECTOR =
+  '[data-testid="primaryColumn"] [role="tab"][aria-selected="true"]';
+const BLOCKED_TAB_LABEL = "For you";
 const HOME_TIMELINE_SELECTOR =
   '[data-testid="primaryColumn"] [aria-label="Timeline: Your Home Timeline"]';
 const HIDDEN_ATTR = "data-xterminator-hidden";
 
 const hiddenElements = new WeakSet<HTMLElement>();
+let enabled = DEFAULT_ENABLED;
 let lastHref = window.location.href;
+
+function getEnabled(): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(
+      { [ENABLED_STORAGE_KEY]: DEFAULT_ENABLED },
+      (items: { [ENABLED_STORAGE_KEY]?: boolean }) => {
+        resolve(items[ENABLED_STORAGE_KEY] ?? DEFAULT_ENABLED);
+      }
+    );
+  });
+}
 
 function isSupportedHomeRoute(): boolean {
   return (
     SUPPORTED_HOSTNAMES.has(window.location.hostname) &&
     window.location.pathname === HOME_PATHNAME
   );
+}
+
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function isBlockedHomeTabSelected(): boolean {
+  const selectedTab = document.querySelector<HTMLElement>(
+    SELECTED_HOME_TAB_SELECTOR
+  );
+
+  return normalizeText(selectedTab?.textContent ?? "") === BLOCKED_TAB_LABEL;
 }
 
 function setImportantDisplayNone(element: HTMLElement): void {
@@ -28,7 +57,7 @@ function clearHiddenTimelines(): void {
 }
 
 function hideHomeTimeline(): void {
-  if (!isSupportedHomeRoute()) {
+  if (!enabled || !isSupportedHomeRoute() || !isBlockedHomeTabSelected()) {
     clearHiddenTimelines();
     return;
   }
@@ -64,9 +93,21 @@ function wrapHistoryMethod(methodName: "pushState" | "replaceState"): void {
   };
 }
 
-function start(): void {
+function listenForToggleChanges(): void {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "sync" || !changes[ENABLED_STORAGE_KEY]) {
+      return;
+    }
+
+    enabled = changes[ENABLED_STORAGE_KEY].newValue ?? DEFAULT_ENABLED;
+    hideHomeTimeline();
+  });
+}
+
+async function start(): Promise<void> {
   wrapHistoryMethod("pushState");
   wrapHistoryMethod("replaceState");
+  listenForToggleChanges();
 
   window.addEventListener("popstate", handlePossibleRouteChange);
 
@@ -76,6 +117,7 @@ function start(): void {
     subtree: true
   });
 
+  enabled = await getEnabled();
   hideHomeTimeline();
 }
 

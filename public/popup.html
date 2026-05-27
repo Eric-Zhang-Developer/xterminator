@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xterminator</title>
+    <link rel="stylesheet" href="assets/popup.css" />
+  </head>
+  <body>
+    <main class="panel" aria-labelledby="popup-title">
+      <header class="panel__header">
+        <div class="brand-mark" aria-hidden="true">X</div>
+        <div>
+          <h1 id="popup-title">Xterminator</h1>
+          <p id="status-text">For you blocked</p>
+        </div>
+      </header>
+
+      <label class="toggle-row" for="enabled-toggle">
+        <span>
+          <span class="toggle-row__label">Block For you</span>
+          <span class="toggle-row__hint">Following and custom timelines stay visible</span>
+        </span>
+        <input id="enabled-toggle" class="toggle-input" type="checkbox" />
+        <span class="toggle-track" aria-hidden="true">
+          <span class="toggle-thumb"></span>
+        </span>
+      </label>
+    </main>
+    <script type="module" src="assets/popup.js"></script>
+  </body>
+</html>
