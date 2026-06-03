@@ -2,16 +2,14 @@
   "name": "xterminator",
   "version": "0.1.0",
   "private": true,
-  "description": "A tiny Chrome extension that hides the For you timeline on X/Twitter home.",
-  "type": "module",
+  "description": "Monorepo for Xterminator: a Chrome extension that hides the For you timeline on X/Twitter, plus its landing page.",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "build": "tsc --noEmit && vite build",
-    "dev": "vite build --watch",
-    "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@types/chrome": "^0.0.306",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.5"
+    "build": "npm run build -w @xterminator/extension",
+    "dev": "npm run dev -w @xterminator/extension",
+    "typecheck": "npm run typecheck -w @xterminator/extension",
+    "dev:landing": "npm run dev -w @xterminator/landing"
   }
 }

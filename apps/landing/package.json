@@ -1,0 +1,13 @@
+{
+  "name": "@xterminator/landing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Landing page for Xterminator (Single Screen + Scroll).",
+  "scripts": {
+    "dev": "serve .",
+    "build": "echo 'static site, nothing to build'"
+  },
+  "devDependencies": {
+    "serve": "^14"
+  }
+}
